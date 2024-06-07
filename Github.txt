@@ -1,0 +1,62 @@
+#Meta-regression bubble using metafor
+#Load package
+library(metafor)
+
+
+#MA with metafor
+#Calculate effect sizes
+CalcES <- escalc(measure = "SMD", 
+                         m1i = mI, sd1i = sdI, n1i = nI,
+                         m2i = mUI, sd2i = sdUI, n2i = nUI, 
+                         data = MetaRegAll)
+
+#Perform meta-analysis
+maFOR <- rma(yi, vi, data = CalcES)
+
+summary(maFOR)
+
+#Meta-regression
+maREG <- rma(yi, vi, mods = ~ Age, data = CalcES)
+
+summary(maREG)
+
+#Create bubble plot with metafor
+regplot(maREG, shade = TRUE, ylab = "SMD", refline = 0, col = "skyblue3")
+
+#Meta-regression bubble using meta
+#Load packages
+library(meta)
+
+#Perform meta-analysis
+maNHE <- metacont(n1,m1,sd1,n2,m2,sd2, data = MetaregNHE, sm = "smd",
+                random = TRUE, common = FALSE, method.smd = "Cohen")
+
+#Perform meta-regression
+mreg <- metareg(maNHE, Covar)
+
+#Create bubble plot
+bubble(mreg, ylim = c(-1,1), xlim = c(22,28))
+
+#Alternative bubble plot with ggplot2
+#Load package
+library(ggplot2)
+
+#Create bubble plot
+ggplot(BubplotNHE, aes(x= Age, y= ES, size = BubSiz)) +
+  scale_size(range = c(9, 18))+
+  geom_smooth(method = "lm", se = TRUE, color = "black",
+              fill = "grey75", alpha = 0.5, size = 1.05, fullrange = TRUE)+
+  geom_point(color = "royalblue3", alpha = 0.7) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color = "black"),
+        axis.text = element_text(color = "black"),
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        legend.position = "none") +
+  labs(x = "Age (years)", y = "Effect Size (SMD)", color = "Sexo") +
+  geom_hline(yintercept = 0, size = 0.5) +
+  scale_x_continuous(expand = c(0, 0)) +
+  expand_limits(x = c(22, 28)) +
+  scale_y_continuous(expand = c(0,0))+
+  ylim(-1.5, 1)
